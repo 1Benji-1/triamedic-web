@@ -129,7 +129,3 @@ http://127.0.0.1:8000
 - Control de acceso basado en roles.
 - Gestión de sesiones.
 - Registro de auditoría para acciones críticas.
-
-## Licencia
-
-Este proyecto fue desarrollado con fines educativos como un sistema web de gestión de triaje clínico utilizando Django y PostgreSQL.
