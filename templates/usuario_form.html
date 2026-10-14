@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
 <div class="page-header">
@@ -49,13 +49,14 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="rol">Rol</label>
+            <label class="form-label" for="rol">Rol del Usuario <span class="required">*</span></label>
             <select name="rol" id="rol" class="form-select">
-                <option value="enfermeria" {% if usuario.rol == 'enfermeria' %}selected{% endif %}>Enfermeria</option>
-                <option value="doctor" {% if usuario.rol == 'doctor' %}selected{% endif %}>Doctor</option>
-                <option value="farmacia" {% if usuario.rol == 'farmacia' %}selected{% endif %}>Farmacia</option>
+                <option value="estadistica" {% if usuario.rol == 'estadistica' %}selected{% endif %}>Personal de Estadística</option>
+                <option value="triaje" {% if usuario.rol == 'triaje' %}selected{% endif %}>Personal de Triaje</option>
+                <option value="doctor" {% if usuario.rol == 'doctor' or usuario.rol == 'clinico' %}selected{% endif %}>Médico de Consulta Externa</option>
                 <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Administrador</option>
             </select>
+            <div class="form-help">Seleccione el rol correspondiente al personal en la clínica</div>
         </div>
 
         {% if action == 'editar' %}
@@ -68,7 +69,7 @@
         </div>
         {% endif %}
 
-        <div class="flex justify-between mt-6">
+        <div class="form-actions mt-6">
             <a href="{% url 'gestion_usuarios' %}" class="btn btn-outline">
                 <i data-feather="arrow-left"></i>
                 Cancelar

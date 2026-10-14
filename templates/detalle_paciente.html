@@ -3,19 +3,19 @@
 {% block content %}
 <div class="page-header flex justify-between items-center">
     <div>
-        <h1 class="page-title">Detalle del Paciente</h1>
-        <p class="page-subtitle">Información completa del registro de triaje</p>
+        <h1 class="page-title">Consulta de Historia Clínica</h1>
+        <p class="page-subtitle">Expediente clínico completo · Clínica Cristiana "El Buen Samaritano"</p>
     </div>
     <a href="{% url 'historial' %}" class="btn btn-outline">
         <i data-feather="arrow-left"></i>
-        Volver al Historial
+        Volver a Búsqueda
     </a>
 </div>
 
 <!-- Patient Card -->
 <div class="patient-card mb-6">
     <div class="patient-header">
-        <div class="flex items-center">
+        <div class="patient-header-main flex items-center">
             <div class="patient-avatar-lg">
                 {{ paciente.nombre_completo|slice:":2"|upper }}
             </div>
@@ -82,7 +82,7 @@
                 <div class="info-value">{{ triaje.medico }}</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Enfermería</div>
+                <div class="info-label">Personal de Triaje</div>
                 <div class="info-value">{{ triaje.enfermeria }}</div>
             </div>
             <div class="info-item">

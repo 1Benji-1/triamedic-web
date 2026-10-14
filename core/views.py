@@ -105,14 +105,14 @@ def dashboard_view(request):
     # Statistics
     hoy = timezone.now().date()
     
-    # For non-admin users, show only their own attended patients
-    if request.user.rol == 'admin':
-        atendidos_hoy = Atencion.objects.filter(fecha_fin__date=hoy).count()
-    else:
+    total_atendidos_hoy = Atencion.objects.filter(fecha_fin__date=hoy).count()
+    if request.user.rol in ['doctor', 'clinico']:
         atendidos_hoy = Atencion.objects.filter(
             fecha_fin__date=hoy,
             usuario=request.user
         ).count()
+    else:
+        atendidos_hoy = total_atendidos_hoy
     
     stats = {
         'total_espera': len(triajes_en_espera),
@@ -163,7 +163,7 @@ def api_queue_update(request):
 # ============================================================
 
 @login_required
-@role_required(['admin', 'farmacia', 'enfermeria', 'doctor'])
+@role_required(['admin', 'estadistica', 'triaje', 'doctor', 'enfermeria', 'farmacia', 'clinico'])
 def registrar_paciente_view(request):
     """Multi-step patient registration form"""
     # Initialize session data if needed
@@ -297,6 +297,7 @@ def cancelar_registro(request):
 # ============================================================
 
 @login_required
+@role_required(['admin', 'doctor', 'clinico'])
 def atencion_view(request, triaje_id):
     """View and complete patient care"""
     triaje = get_object_or_404(Triaje, id=triaje_id)
@@ -370,18 +371,12 @@ def quitar_de_cola(request, triaje_id):
 
 @login_required
 def historial_view(request):
-    """View patient history with filters and search"""
+    """View patient clinical history with filters and search (CU: Buscar historias clínicas)"""
     form = BusquedaPacienteForm(request.GET)
     
-    # Base query - filter by role
-    if request.user.rol == 'admin':
-        # Admin sees all triage records
-        triajes = Triaje.objects.select_related('paciente').order_by('-fecha_hora_consulta')
-    else:
-        # Personal común only sees patients they attended
-        triajes = Triaje.objects.filter(
-            atencion__usuario=request.user
-        ).select_related('paciente').order_by('-fecha_hora_consulta')
+    # In accordance with CU 'Buscar historias clínicas', all authorized clinical and administrative
+    # personnel can search and locate patient records
+    triajes = Triaje.objects.select_related('paciente').order_by('-fecha_hora_consulta')
     
     # Apply filters
     if form.is_valid():
@@ -405,7 +400,7 @@ def historial_view(request):
         if fecha_hasta:
             triajes = triajes.filter(fecha_hora_consulta__date__lte=fecha_hasta)
     
-    registrar_auditoria(request, request.user, 'ver_historial', 'Consulta de historial')
+    registrar_auditoria(request, request.user, 'ver_historial', 'Búsqueda de historias clínicas')
     
     # Pagination
     paginator = Paginator(triajes, 20)
@@ -415,7 +410,7 @@ def historial_view(request):
     context = {
         'form': form,
         'page_obj': page_obj,
-        'page_title': 'Historial de Pacientes'
+        'page_title': 'Buscar Historias Clínicas'
     }
     
     return render(request, 'historial.html', context)
@@ -423,15 +418,12 @@ def historial_view(request):
 
 @login_required
 def detalle_paciente_view(request, triaje_id):
-    """View detailed patient record"""
+    """View detailed patient clinical record (CU: Consultar historia clínica)"""
     triaje = get_object_or_404(Triaje.objects.select_related('paciente'), id=triaje_id)
     atencion = getattr(triaje, 'atencion', None)
     
-    # Check access for personal común - only if they attended this patient
-    if request.user.rol != 'admin':
-        if not atencion or atencion.usuario != request.user:
-            messages.error(request, 'No tiene permiso para ver este paciente.')
-            return redirect('historial')
+    registrar_auditoria(request, request.user, 'ver_historial', 
+                        f'Consulta de historia clínica de {triaje.paciente.nombre_completo}')
     
     # Get patient history (all triages)
     historial = Triaje.objects.filter(paciente=triaje.paciente).order_by('-fecha_hora_consulta')
@@ -441,7 +433,7 @@ def detalle_paciente_view(request, triaje_id):
         'paciente': triaje.paciente,
         'atencion': atencion,
         'historial': historial,
-        'page_title': f'Detalle - {triaje.paciente.nombre_completo}'
+        'page_title': f'Consulta de Historia Clínica - {triaje.paciente.nombre_completo}'
     }
     
     return render(request, 'detalle_paciente.html', context)
@@ -622,21 +614,23 @@ def crear_usuario_view(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         nombre_completo = request.POST.get('nombre_completo', '').strip()
-        rol = request.POST.get('rol', 'personal')
+        rol = request.POST.get('rol', 'estadistica')
         
         # Validation
         if not username or not password or not nombre_completo:
             messages.error(request, 'Todos los campos son obligatorios.')
             return render(request, 'usuario_form.html', {
                 'page_title': 'Crear Usuario',
-                'action': 'crear'
+                'action': 'crear',
+                'roles': Usuario.ROLES
             })
         
         if Usuario.objects.filter(username=username).exists():
             messages.error(request, 'El nombre de usuario ya existe.')
             return render(request, 'usuario_form.html', {
                 'page_title': 'Crear Usuario',
-                'action': 'crear'
+                'action': 'crear',
+                'roles': Usuario.ROLES
             })
         
         # Create user
@@ -655,7 +649,8 @@ def crear_usuario_view(request):
     
     return render(request, 'usuario_form.html', {
         'page_title': 'Crear Usuario',
-        'action': 'crear'
+        'action': 'crear',
+        'roles': Usuario.ROLES
     })
 
 
@@ -667,7 +662,7 @@ def editar_usuario_view(request, user_id):
     
     if request.method == 'POST':
         nombre_completo = request.POST.get('nombre_completo', '').strip()
-        rol = request.POST.get('rol', 'personal')
+        rol = request.POST.get('rol', 'estadistica')
         activo = request.POST.get('activo') == 'on'
         new_password = request.POST.get('password', '').strip()
         
@@ -692,7 +687,8 @@ def editar_usuario_view(request, user_id):
     return render(request, 'usuario_form.html', {
         'usuario': usuario,
         'page_title': f'Editar Usuario - {usuario.nombre_completo}',
-        'action': 'editar'
+        'action': 'editar',
+        'roles': Usuario.ROLES
     })
 
 

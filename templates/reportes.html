@@ -3,26 +3,28 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">Reportes y Estadísticas</h1>
-    <p class="page-subtitle">Análisis de datos y métricas del sistema</p>
+    <p class="page-subtitle">Generación de reportes y análisis métrico · Consulta Externa - Clínica El Buen Samaritano</p>
 </div>
 
 <!-- Date Filter -->
 <div class="card mb-6">
-    <form method="get" class="flex gap-4" style="flex-wrap: wrap; align-items: flex-end;">
-        <div class="form-group" style="min-width: 150px; margin-bottom: 0;">
+    <form method="get" class="filter-bar">
+        <div class="form-group">
             <label class="form-label">Fecha Desde</label>
             <input type="date" name="fecha_desde" class="form-input" value="{{ fecha_desde|date:'Y-m-d' }}">
         </div>
 
-        <div class="form-group" style="min-width: 150px; margin-bottom: 0;">
+        <div class="form-group">
             <label class="form-label">Fecha Hasta</label>
             <input type="date" name="fecha_hasta" class="form-input" value="{{ fecha_hasta|date:'Y-m-d' }}">
         </div>
 
-        <button type="submit" class="btn btn-primary">
-            <i data-feather="bar-chart-2"></i>
-            Generar Reporte
-        </button>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">
+                <i data-feather="bar-chart-2"></i>
+                Generar Reporte
+            </button>
+        </div>
     </form>
 </div>
 
@@ -78,33 +80,35 @@
         Pacientes por Especialidad
     </h3>
 
-    <table class="queue-table">
-        <thead>
-            <tr>
-                <th>Especialidad</th>
-                <th>Total Pacientes</th>
-                <th>Porcentaje</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in especialidad_stats %}
-            <tr>
-                <td>{{ item.especialidad|title }}</td>
-                <td>{{ item.total }}</td>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="flex: 1; background: var(--color-gray-200); border-radius: 4px; height: 8px;">
-                            <div
-                                style="width: 33%; background: var(--color-primary); height: 100%; border-radius: 4px;">
+    <div class="table-responsive">
+        <table class="queue-table">
+            <thead>
+                <tr>
+                    <th>Especialidad</th>
+                    <th>Total Pacientes</th>
+                    <th>Porcentaje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in especialidad_stats %}
+                <tr>
+                    <td>{{ item.especialidad|title }}</td>
+                    <td>{{ item.total }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="flex: 1; background: var(--color-gray-200); border-radius: 4px; height: 8px;">
+                                <div
+                                    style="width: 33%; background: var(--color-primary); height: 100%; border-radius: 4px;">
+                                </div>
                             </div>
+                            <span class="text-muted" style="font-size: 12px;">{{ item.total }}</span>
                         </div>
-                        <span class="text-muted" style="font-size: 12px;">{{ item.total }}</span>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endif %}
 
@@ -116,39 +120,41 @@
         Rendimiento por Usuario
     </h3>
 
-    <table class="queue-table">
-        <thead>
-            <tr>
-                <th>Usuario</th>
-                <th>Pacientes Atendidos</th>
-                <th>Tiempo Promedio</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in usuarios_stats %}
-            <tr>
-                <td>
-                    <div class="patient-name">{{ item.usuario__nombre_completo|default:"Usuario Eliminado" }}</div>
-                </td>
-                <td>
-                    <span class="priority-badge baja">{{ item.total_atendidos }}</span>
-                </td>
-                <td>
-                    <span class="time-badge">
-                        <i data-feather="clock" style="width: 14px; height: 14px;"></i>
-                        {{ item.promedio_minutos }} min
-                    </span>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3" class="text-center text-muted" style="padding: 2rem;">
-                    No hay datos de atención en este período
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="queue-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Pacientes Atendidos</th>
+                    <th>Tiempo Promedio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in usuarios_stats %}
+                <tr>
+                    <td>
+                        <div class="patient-name">{{ item.usuario__nombre_completo|default:"Usuario Eliminado" }}</div>
+                    </td>
+                    <td>
+                        <span class="priority-badge baja">{{ item.total_atendidos }}</span>
+                    </td>
+                    <td>
+                        <span class="time-badge">
+                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
+                            {{ item.promedio_minutos }} min
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center text-muted" style="padding: 2rem;">
+                        No hay datos de atención en este período
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endif %}
 

@@ -106,7 +106,7 @@
 
             <div class="form-group">
                 <label class="form-label" for="id_enfermeria">
-                    Personal de Enfermería <span class="required">*</span>
+                    Personal de Triaje <span class="required">*</span>
                 </label>
                 {{ form.enfermeria }}
             </div>
@@ -220,7 +220,7 @@
         {% endif %}
 
         <!-- Navigation Buttons -->
-        <div class="flex justify-between mt-6">
+        <div class="form-actions mt-6">
             <div>
                 {% if step > 1 %}
                 <a href="?step={{ step|add:'-1' }}" class="btn btn-outline">
@@ -236,16 +236,17 @@
             </div>
 
             <div>
-                {% if step < 4 %} <button type="submit" class="btn btn-primary">
+                {% if step < 4 %}
+                <button type="submit" class="btn btn-primary">
                     Siguiente
                     <i data-feather="arrow-right"></i>
-                    </button>
-                    {% else %}
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i data-feather="check"></i>
-                        Registrar Paciente
-                    </button>
-                    {% endif %}
+                </button>
+                {% else %}
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i data-feather="check"></i>
+                    Registrar Paciente
+                </button>
+                {% endif %}
             </div>
         </div>
     </form>

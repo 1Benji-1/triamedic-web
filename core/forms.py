@@ -74,10 +74,10 @@ class TriajeAntecedentesForm(forms.Form):
         })
     )
     enfermeria = forms.CharField(
-        label='Enfermería *',
+        label='Personal de Triaje *',
         widget=forms.TextInput(attrs={
             'class': 'form-input',
-            'placeholder': 'Nombre del personal de enfermería'
+            'placeholder': 'Nombre del personal de triaje'
         })
     )
     tipo_servicio = forms.ChoiceField(

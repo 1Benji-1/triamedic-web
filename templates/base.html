@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ page_title|default:"Sistema de Triaje Clínico" }}{% endblock %}</title>
+    <title>{% block title %}{{ page_title|default:"Historias Clínicas · El Buen Samaritano" }}{% endblock %}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,37 +29,37 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="nav-brand">
-            <div class="nav-logo">
-                <img src="{% static 'images/logo.png' %}" alt="Logo" style="height: 32px; width: auto;">
-            </div>
-            <h1 class="nav-title">Triamedic</span></h1>
+            <a href="{% url 'dashboard' %}" class="brand-link">
+                <div class="nav-logo">
+                    <img src="{% static 'images/logo.png' %}" alt="Logo" class="nav-logo-img">
+                </div>
+                <div class="brand-text">
+                    <h1 class="nav-title">El Buen Samaritano</h1>
+                    <span class="nav-subtitle">Historias Clínicas · Consulta Externa</span>
+                </div>
+            </a>
         </div>
-
-        <button class="mobile-menu-btn" id="mobileMenuBtn"
-            onclick="document.getElementById('navMenu').classList.toggle('active')">
-            <i data-feather="menu"></i>
-        </button>
 
         <ul class="nav-menu" id="navMenu">
             <li>
                 <a href="{% url 'dashboard' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i data-feather="home"></i>
-                    Principal
+                    <i data-feather="activity"></i>
+                    <span>Cola de Espera</span>
                 </a>
             </li>
             <li>
                 <a href="{% url 'registrar_paciente' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'registrar_paciente' %}active{% endif %}">
                     <i data-feather="user-plus"></i>
-                    Registrar
+                    <span>Registrar Paciente</span>
                 </a>
             </li>
             <li>
                 <a href="{% url 'historial' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'historial' or request.resolver_match.url_name == 'detalle_paciente' %}active{% endif %}">
-                    <i data-feather="users"></i>
-                    Pacientes
+                    <i data-feather="book-open"></i>
+                    <span>Buscar Historias</span>
                 </a>
             </li>
             {% if user.rol == 'admin' %}
@@ -67,30 +67,37 @@
                 <a href="{% url 'reportes' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
                     <i data-feather="bar-chart-2"></i>
-                    Reportes
+                    <span>Reportes</span>
                 </a>
             </li>
             <li>
                 <a href="{% url 'gestion_usuarios' %}"
                     class="nav-link {% if request.resolver_match.url_name == 'gestion_usuarios' or request.resolver_match.url_name == 'crear_usuario' or request.resolver_match.url_name == 'editar_usuario' %}active{% endif %}">
-                    <i data-feather="settings"></i>
-                    Usuarios
+                    <i data-feather="shield"></i>
+                    <span>Usuarios y Roles</span>
                 </a>
             </li>
             {% endif %}
         </ul>
 
-        <div class="nav-user">
-            <div class="user-info">
-                <div class="user-name">{{ user.nombre_completo|default:user.username }}</div>
-                <div class="user-role">{{ user.get_rol_display }}</div>
+        <div class="nav-right">
+            <div class="nav-user">
+                <div class="user-info">
+                    <div class="user-name">{{ user.nombre_completo|default:user.username }}</div>
+                    <div class="user-role">{{ user.get_rol_display }}</div>
+                </div>
+                <div class="user-avatar" title="{{ user.nombre_completo|default:user.username }}">
+                    {{ user.nombre_completo|default:user.username|slice:":2"|upper }}
+                </div>
+                <a href="{% url 'logout' %}" class="btn btn-outline btn-sm logout-btn" title="Cerrar sesión">
+                    <i data-feather="log-out"></i>
+                </a>
             </div>
-            <div class="user-avatar">
-                {{ user.nombre_completo|default:user.username|slice:":2"|upper }}
-            </div>
-            <a href="{% url 'logout' %}" class="btn btn-outline btn-sm" title="Cerrar sesión">
-                <i data-feather="log-out"></i>
-            </a>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Menú de navegación" aria-expanded="false">
+                <i data-feather="menu" class="icon-menu"></i>
+                <i data-feather="x" class="icon-close" style="display: none;"></i>
+            </button>
         </div>
     </nav>
     {% endif %}

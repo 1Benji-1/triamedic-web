@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="page-header">
-    <h1 class="page-title">Panel Principal</h1>
-    <p class="page-subtitle">Cola de triaje y estadísticas en tiempo real</p>
+    <h1 class="page-title">Cola de Espera · Consulta Externa</h1>
+    <p class="page-subtitle">Monitoreo de cola de triaje y atención médica de consulta externa</p>
 </div>
 
 <!-- Statistics Cards -->
@@ -93,68 +93,77 @@
 <div class="queue-container">
     <div class="queue-header">
         <h2 class="queue-title">
-            <i data-feather="list" style="display: inline; vertical-align: middle;"></i>
-            Cola de Triaje
+            <i data-feather="users" style="display: inline; vertical-align: middle;"></i>
+            Pacientes en Espera (Consulta Externa)
         </h2>
         <span class="queue-count">{{ stats.total_espera }} pacientes</span>
     </div>
 
     {% if triajes %}
-    <table class="queue-table">
-        <thead>
-            <tr>
-                <th>Paciente</th>
-                <th>Prioridad</th>
-                <th>Especialidad</th>
-                <th>Hora Ingreso</th>
-                <th>Tiempo Espera</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="queue-body">
-            {% for triaje in triajes %}
-            <tr data-id="{{ triaje.id }}">
-                <td>
-                    <div class="patient-name">{{ triaje.paciente.nombre_completo }}</div>
-                    <div class="patient-ci">CI: {{ triaje.paciente.ci }}</div>
-                </td>
-                <td>
-                    <span class="priority-badge {{ triaje.nivel_prioridad }}">
-                        <span class="priority-dot {{ triaje.nivel_prioridad }}"></span>
-                        {{ triaje.get_nivel_prioridad_display }}
-                    </span>
-                </td>
-                <td>{{ triaje.get_especialidad_display }}</td>
-                <td>
-                    <div class="time-badge">
-                        <i data-feather="clock" style="width: 14px; height: 14px;"></i>
-                        {{ triaje.fecha_hora_consulta|time:"H:i" }}
-                    </div>
-                </td>
-                <td>
-                    <span class="time-badge {% if triaje.nivel_prioridad == 'alta' %}text-error{% endif %}">
-                        {{ triaje.tiempo_espera }}
-                    </span>
-                </td>
-                <td>
-                    <div class="flex gap-2">
-                        <a href="{% url 'atencion' triaje.id %}" class="btn btn-primary btn-sm">
-                            <i data-feather="play"></i>
-                            Atender
-                        </a>
-                        <form action="{% url 'quitar_de_cola' triaje.id %}" method="post" style="display: inline;"
-                            onsubmit="return confirm('¿Está seguro de quitar a {{ triaje.paciente.nombre_completo }} de la cola?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline btn-sm" title="Quitar de cola">
-                                <i data-feather="x"></i>
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="queue-table">
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Prioridad</th>
+                    <th>Especialidad</th>
+                    <th>Hora Ingreso</th>
+                    <th>Tiempo Espera</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="queue-body">
+                {% for triaje in triajes %}
+                <tr data-id="{{ triaje.id }}">
+                    <td>
+                        <div class="patient-name">{{ triaje.paciente.nombre_completo }}</div>
+                        <div class="patient-ci">CI: {{ triaje.paciente.ci }}</div>
+                    </td>
+                    <td>
+                        <span class="priority-badge {{ triaje.nivel_prioridad }}">
+                            <span class="priority-dot {{ triaje.nivel_prioridad }}"></span>
+                            {{ triaje.get_nivel_prioridad_display }}
+                        </span>
+                    </td>
+                    <td>{{ triaje.get_especialidad_display }}</td>
+                    <td>
+                        <div class="time-badge">
+                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
+                            {{ triaje.fecha_hora_consulta|time:"H:i" }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="time-badge {% if triaje.nivel_prioridad == 'alta' %}text-error{% endif %}">
+                            {{ triaje.tiempo_espera }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            {% if user.rol == 'admin' or user.rol == 'doctor' or user.rol == 'clinico' %}
+                            <a href="{% url 'atencion' triaje.id %}" class="btn btn-primary btn-sm" title="Atender Consulta Médica">
+                                <i data-feather="play"></i>
+                                Atender
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'detalle_paciente' triaje.id %}" class="btn btn-outline btn-sm" title="Consultar Historia Clínica">
+                                <i data-feather="file-text"></i>
+                            </a>
+                            {% if user.rol == 'admin' or user.rol == 'triaje' %}
+                            <form action="{% url 'quitar_de_cola' triaje.id %}" method="post" style="display: inline;"
+                                onsubmit="return confirm('¿Está seguro de quitar a {{ triaje.paciente.nombre_completo }} de la cola?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline btn-sm" title="Quitar de cola">
+                                    <i data-feather="x"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <div class="queue-empty">
         <div class="queue-empty-icon">

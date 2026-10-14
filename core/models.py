@@ -15,12 +15,15 @@ class Usuario(AbstractUser):
     """
     ROLES = [
         ('admin', 'Administrador'),
-        ('farmacia', 'Farmacia'),
+        ('estadistica', 'Personal de Estadística'),
+        ('triaje', 'Personal de Triaje'),
+        ('doctor', 'Médico de Consulta Externa'),
         ('enfermeria', 'Enfermería'),
-        ('doctor', 'Doctor'),
+        ('farmacia', 'Farmacia'),
+        ('clinico', 'Médico Clínico'),
     ]
     
-    rol = models.CharField(max_length=20, choices=ROLES, default='enfermeria')
+    rol = models.CharField(max_length=20, choices=ROLES, default='estadistica')
     nombre_completo = models.CharField(max_length=100)
     fecha_creacion = models.DateTimeField(default=timezone.now)
     activo = models.BooleanField(default=True)

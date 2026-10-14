@@ -26,3 +26,9 @@ staticfiles_build/
 
 # Agent
 .agent/
+
+# Scratch and temporary files
+scratch_*/
+scratch_*
+documento_final_backup.docx
+test_fix_images.py

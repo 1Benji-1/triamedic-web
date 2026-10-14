@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-^px*x2uyf=6kq5)f!ui@*6^q72
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '.vercel.app']
 
 
 # Application definition
@@ -65,19 +65,37 @@ WSGI_APPLICATION = 'triaje_clinico.wsgi.application'
 
 
 # Database - Supabase PostgreSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'postgres'),
-        'USER': os.getenv('DB_USER', ''),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    import urllib.parse
+    _db_url = urllib.parse.urlparse(DATABASE_URL)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _db_url.path[1:] if _db_url.path else 'postgres',
+            'USER': urllib.parse.unquote(_db_url.username or ''),
+            'PASSWORD': urllib.parse.unquote(_db_url.password or ''),
+            'HOST': _db_url.hostname or 'localhost',
+            'PORT': str(_db_url.port or 5432),
+            'OPTIONS': {
+                'sslmode': os.getenv('DB_SSLMODE', 'require'),
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'postgres'),
+            'USER': os.getenv('DB_USER', ''),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+            'OPTIONS': {
+                'sslmode': os.getenv('DB_SSLMODE', 'disable' if DEBUG else 'require'),
+            },
+        }
+    }
 
 
 # Custom User Model
