@@ -1,15 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="page-header flex justify-between items-center">
+<div class="page-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
     <div>
-        <h1 class="page-title">Consulta de Historia Clínica</h1>
-        <p class="page-subtitle">Expediente clínico completo · Clínica Cristiana "El Buen Samaritano"</p>
+        <h1 class="page-title">Historia Clínica del Paciente</h1>
+        <p class="page-subtitle">Expediente clínico completo · Consulta Externa - Clínica Cristiana "El Buen Samaritano"</p>
     </div>
-    <a href="{% url 'historial' %}" class="btn btn-outline">
-        <i data-feather="arrow-left"></i>
-        Volver a Búsqueda
-    </a>
+    <div class="flex gap-2">
+        <a href="{% url 'historial' %}" class="btn btn-outline btn-sm">
+            <i data-feather="arrow-left"></i>
+            Volver a Búsqueda
+        </a>
+        {% if user.rol == 'admin' or user.rol == 'doctor' or user.rol == 'clinico' %}
+        {% if triaje.estado != 'atendido' %}
+        <a href="{% url 'atencion' triaje.id %}" class="btn btn-primary btn-sm">
+            <i data-feather="play"></i>
+            Atender Consulta
+        </a>
+        {% endif %}
+        {% endif %}
+    </div>
 </div>
 
 <!-- Patient Card -->
@@ -21,11 +31,11 @@
             </div>
             <div class="patient-header-info">
                 <h2 class="patient-header-name">{{ paciente.nombre_completo }}</h2>
-                <p class="patient-header-ci">CI: {{ paciente.ci }} | {{ paciente.edad }} años</p>
+                <p class="patient-header-ci">CI: {{ paciente.ci }} | {{ paciente.edad }} años | Sexo: {{ paciente.get_sexo_display }} | {{ paciente.get_tipo_paciente_display }}</p>
             </div>
         </div>
         <div>
-            <span class="priority-badge {{ triaje.nivel_prioridad }}" style="font-size: 14px; padding: 8px 16px;">
+            <span class="priority-badge {{ triaje.nivel_prioridad }}" style="font-size: 0.9rem; padding: 0.5rem 1.15rem; background: rgba(255, 255, 255, 0.95); border-color: rgba(255, 255, 255, 0.8);">
                 <span class="priority-dot {{ triaje.nivel_prioridad }}"></span>
                 Prioridad {{ triaje.get_nivel_prioridad_display }}
             </span>
@@ -35,8 +45,8 @@
     <div class="patient-body">
         <!-- General Data Section -->
         <h3 class="card-title mb-4">
-            <i data-feather="user" style="display: inline; vertical-align: middle;"></i>
-            Datos Generales
+            <i data-feather="user"></i>
+            Datos Generales de Filiación
         </h3>
 
         <div class="info-grid mb-6">
@@ -53,7 +63,7 @@
                 <div class="info-value">{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Edad</div>
+                <div class="info-label">Edad Cronológica</div>
                 <div class="info-value">{{ paciente.edad }} años</div>
             </div>
             <div class="info-item">
@@ -61,20 +71,20 @@
                 <div class="info-value">{{ paciente.get_sexo_display }}</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Tipo de Paciente</div>
+                <div class="info-label">Categoría de Paciente</div>
                 <div class="info-value">{{ paciente.get_tipo_paciente_display }}</div>
             </div>
         </div>
 
         <!-- Antecedentes Section -->
         <h3 class="card-title mb-4">
-            <i data-feather="file-text" style="display: inline; vertical-align: middle;"></i>
-            Antecedentes
+            <i data-feather="clipboard"></i>
+            Datos de la Consulta y Asignación
         </h3>
 
         <div class="info-grid mb-6">
             <div class="info-item">
-                <div class="info-label">Especialidad</div>
+                <div class="info-label">Especialidad Médica</div>
                 <div class="info-value">{{ triaje.get_especialidad_display }}</div>
             </div>
             <div class="info-item">
@@ -90,15 +100,15 @@
                 <div class="info-value">{{ triaje.get_tipo_servicio_display }}</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Fecha/Hora Consulta</div>
+                <div class="info-label">Fecha y Hora de Consulta</div>
                 <div class="info-value">{{ triaje.fecha_hora_consulta|date:"d/m/Y H:i" }}</div>
             </div>
         </div>
 
         <!-- Vital Signs Section -->
         <h3 class="card-title mb-4">
-            <i data-feather="activity" style="display: inline; vertical-align: middle;"></i>
-            Signos Vitales (Triaje)
+            <i data-feather="activity"></i>
+            Signos Vitales y Triaje Clínico
         </h3>
 
         <div class="info-grid mb-6">
@@ -119,14 +129,15 @@
                 <div class="info-value">{{ triaje.presion_arterial }} mmHg</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Pulsación</div>
+                <div class="info-label">Frecuencia Cardíaca</div>
                 <div class="info-value">{{ triaje.pulsacion }} ppm</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Nivel de Prioridad</div>
                 <div class="info-value">
                     <span class="priority-badge {{ triaje.nivel_prioridad }}">
-                        {{ triaje.get_nivel_prioridad_display }}
+                        <span class="priority-dot {{ triaje.nivel_prioridad }}"></span>
+                        Prioridad {{ triaje.get_nivel_prioridad_display }}
                     </span>
                 </div>
             </div>
@@ -135,26 +146,26 @@
         <!-- Diagnosis Section -->
         {% if triaje.sintomatologia or triaje.tratamiento or triaje.estudios_complementarios %}
         <h3 class="card-title mb-4">
-            <i data-feather="clipboard" style="display: inline; vertical-align: middle;"></i>
-            Diagnóstico e Indicaciones
+            <i data-feather="file-text"></i>
+            Diagnóstico e Indicaciones Previas
         </h3>
 
         <div class="info-grid mb-6">
             {% if triaje.sintomatologia %}
             <div class="info-item" style="grid-column: span 2;">
-                <div class="info-label">Sintomatología</div>
+                <div class="info-label">Sintomatología Reportada</div>
                 <div class="info-value">{{ triaje.sintomatologia }}</div>
             </div>
             {% endif %}
             {% if triaje.tratamiento %}
             <div class="info-item" style="grid-column: span 2;">
-                <div class="info-label">Tratamiento</div>
+                <div class="info-label">Tratamiento Inicial</div>
                 <div class="info-value">{{ triaje.tratamiento }}</div>
             </div>
             {% endif %}
             {% if triaje.estudios_complementarios %}
             <div class="info-item" style="grid-column: span 2;">
-                <div class="info-label">Estudios Complementarios</div>
+                <div class="info-label">Estudios Complementarios Solicitados</div>
                 <div class="info-value">{{ triaje.estudios_complementarios }}</div>
             </div>
             {% endif %}
@@ -164,21 +175,21 @@
         <!-- Attention Section -->
         {% if atencion %}
         <h3 class="card-title mb-4">
-            <i data-feather="check-circle" style="display: inline; vertical-align: middle;"></i>
-            Atención Realizada
+            <i data-feather="check-circle" style="color: var(--color-success);"></i>
+            Registro de Atención y Prescripción Final
         </h3>
 
         <div class="info-grid">
             <div class="info-item">
-                <div class="info-label">Fecha Inicio</div>
+                <div class="info-label">Fecha y Hora de Inicio</div>
                 <div class="info-value">{{ atencion.fecha_inicio|date:"d/m/Y H:i" }}</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Fecha Fin</div>
+                <div class="info-label">Fecha y Hora de Fin</div>
                 <div class="info-value">{{ atencion.fecha_fin|date:"d/m/Y H:i"|default:"En curso" }}</div>
             </div>
             <div class="info-item">
-                <div class="info-label">Duración</div>
+                <div class="info-label">Duración de Consulta</div>
                 <div class="info-value">{{ atencion.duracion_atencion }}</div>
             </div>
             <div class="info-item">
@@ -193,7 +204,7 @@
             {% endif %}
             {% if atencion.observaciones %}
             <div class="info-item" style="grid-column: span 2;">
-                <div class="info-label">Observaciones</div>
+                <div class="info-label">Observaciones del Especialista</div>
                 <div class="info-value">{{ atencion.observaciones }}</div>
             </div>
             {% endif %}
@@ -205,51 +216,64 @@
 <!-- Patient History -->
 {% if historial.count > 1 %}
 <div class="card">
-    <h2 class="card-title mb-4">
-        <i data-feather="clock" style="display: inline; vertical-align: middle;"></i>
-        Historial de Consultas ({{ historial.count }})
-    </h2>
+    <div class="card-header">
+        <h2 class="card-title">
+            <i data-feather="clock"></i>
+            Historial de Consultas Anteriores ({{ historial.count }})
+        </h2>
+    </div>
 
-    <table class="queue-table">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Especialidad</th>
-                <th>Prioridad</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for t in historial %}
-            <tr>
-                <td>{{ t.fecha_hora_consulta|date:"d/m/Y H:i" }}</td>
-                <td>{{ t.get_especialidad_display }}</td>
-                <td>
-                    <span class="priority-badge {{ t.nivel_prioridad }}">
-                        {{ t.get_nivel_prioridad_display }}
-                    </span>
-                </td>
-                <td>
-                    {% if t.estado == 'atendido' %}
-                    <span class="text-success">Atendido</span>
-                    {% else %}
-                    <span class="text-warning">{{ t.get_estado_display }}</span>
-                    {% endif %}
-                </td>
-                <td>
-                    {% if t.id != triaje.id %}
-                    <a href="{% url 'detalle_paciente' t.id %}" class="btn btn-outline btn-sm">
-                        <i data-feather="eye"></i>
-                    </a>
-                    {% else %}
-                    <span class="text-muted">Actual</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="queue-table">
+            <thead>
+                <tr>
+                    <th>Fecha Consulta</th>
+                    <th>Especialidad</th>
+                    <th>Prioridad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in historial %}
+                <tr>
+                    <td>
+                        <div class="time-badge">
+                            <i data-feather="calendar" style="width: 13px; height: 13px;"></i>
+                            {{ t.fecha_hora_consulta|date:"d/m/Y H:i" }}
+                        </div>
+                    </td>
+                    <td>
+                        <span style="font-weight: 500;">{{ t.get_especialidad_display }}</span>
+                    </td>
+                    <td>
+                        <span class="priority-badge {{ t.nivel_prioridad }}">
+                            <span class="priority-dot {{ t.nivel_prioridad }}"></span>
+                            {{ t.get_nivel_prioridad_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if t.estado == 'atendido' %}
+                        <span class="priority-badge baja">Atendido</span>
+                        {% else %}
+                        <span class="priority-badge media">{{ t.get_estado_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.id != triaje.id %}
+                        <a href="{% url 'detalle_paciente' t.id %}" class="btn btn-outline btn-sm">
+                            <i data-feather="eye"></i>
+                            Ver Expediente
+                        </a>
+                        {% else %}
+                        <span class="time-badge" style="background: rgba(79, 70, 229, 0.1); color: var(--color-primary); font-weight: 600;">Expediente Actual</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endif %}
 {% endblock %}

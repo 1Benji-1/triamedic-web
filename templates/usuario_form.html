@@ -1,12 +1,25 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">{{ page_title }}</h1>
-    <p class="page-subtitle">{% if action == 'crear' %}Crear nueva cuenta de usuario{% else %}Modificar datos del usuario{% endif %}</p>
+<div class="page-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle">{% if action == 'crear' %}Creación de credenciales para nuevo personal{% else %}Actualización de credenciales y rol de usuario{% endif %}</p>
+    </div>
+    <a href="{% url 'gestion_usuarios' %}" class="btn btn-outline btn-sm">
+        <i data-feather="arrow-left"></i>
+        Volver a Usuarios
+    </a>
 </div>
 
-<div class="card" style="max-width: 600px;">
+<div class="card" style="max-width: 620px; margin: 0 auto;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i data-feather="{% if action == 'crear' %}user-plus{% else %}user-check{% endif %}"></i>
+            Datos de la Cuenta
+        </h2>
+    </div>
+
     <form method="post">
         {% csrf_token %}
 
@@ -16,62 +29,64 @@
                 Nombre de Usuario <span class="required">*</span>
             </label>
             <input type="text" name="username" id="username" class="form-input"
-                placeholder="Ingrese el nombre de usuario" required>
-            <div class="form-help">Este sera el nombre para iniciar sesion</div>
+                placeholder="Ej: doctor2, triaje2, etc." required autofocus>
+            <div class="form-help">Identificador único utilizado para iniciar sesión en la plataforma</div>
         </div>
         {% else %}
         <div class="form-group">
             <label class="form-label">Nombre de Usuario</label>
-            <input type="text" class="form-input" value="{{ usuario.username }}" disabled>
-            <div class="form-help">El nombre de usuario no se puede modificar</div>
+            <input type="text" class="form-input" value="{{ usuario.username }}" disabled style="background: var(--color-gray-100); color: var(--color-gray-500);">
+            <div class="form-help">El nombre de usuario es un identificador permanente y no se puede modificar</div>
         </div>
         {% endif %}
 
         <div class="form-group">
             <label class="form-label" for="nombre_completo">
-                Nombre Completo <span class="required">*</span>
+                Nombre Completo del Personal <span class="required">*</span>
             </label>
             <input type="text" name="nombre_completo" id="nombre_completo" class="form-input"
-                placeholder="Ingrese el nombre completo"
+                placeholder="Ej: Dr. Fernando Suárez"
                 value="{% if usuario %}{{ usuario.nombre_completo }}{% endif %}" required>
         </div>
 
         <div class="form-group">
             <label class="form-label" for="password">
-                Contrasena {% if action == 'crear' %}<span class="required">*</span>{% endif %}
+                Contraseña {% if action == 'crear' %}<span class="required">*</span>{% endif %}
             </label>
             <input type="password" name="password" id="password" class="form-input"
-                placeholder="{% if action == 'crear' %}Ingrese la contrasena{% else %}Dejar vacio para mantener la actual{% endif %}"
+                placeholder="{% if action == 'crear' %}Ingrese una contraseña segura{% else %}Dejar vacío para conservar la contraseña actual{% endif %}"
                 {% if action == 'crear' %}required{% endif %}>
             {% if action == 'editar' %}
-            <div class="form-help">Solo complete si desea cambiar la contrasena</div>
+            <div class="form-help">Complete este campo únicamente si requiere cambiar la contraseña de acceso</div>
+            {% else %}
+            <div class="form-help">Mínimo 8 caracteres, combinando mayúsculas, minúsculas y números</div>
             {% endif %}
         </div>
 
         <div class="form-group">
-            <label class="form-label" for="rol">Rol del Usuario <span class="required">*</span></label>
+            <label class="form-label" for="rol">Rol Funcional en la Clínica <span class="required">*</span></label>
             <select name="rol" id="rol" class="form-select">
-                <option value="estadistica" {% if usuario.rol == 'estadistica' %}selected{% endif %}>Personal de Estadística</option>
-                <option value="triaje" {% if usuario.rol == 'triaje' %}selected{% endif %}>Personal de Triaje</option>
-                <option value="doctor" {% if usuario.rol == 'doctor' or usuario.rol == 'clinico' %}selected{% endif %}>Médico de Consulta Externa</option>
-                <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Administrador</option>
+                <option value="estadistica" {% if usuario.rol == 'estadistica' %}selected{% endif %}>Personal de Estadística (Registro y Búsqueda)</option>
+                <option value="triaje" {% if usuario.rol == 'triaje' %}selected{% endif %}>Personal de Triaje (Admisión, Signos Vitales y Priorización)</option>
+                <option value="doctor" {% if usuario.rol == 'doctor' or usuario.rol == 'clinico' %}selected{% endif %}>Médico de Consulta Externa (Atención Clínica y Prescripción)</option>
+                <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Administrador (Control Total, Reportes y Usuarios)</option>
             </select>
-            <div class="form-help">Seleccione el rol correspondiente al personal en la clínica</div>
+            <div class="form-help">Determina los permisos, pantallas accesibles y funciones en el sistema</div>
         </div>
 
         {% if action == 'editar' %}
         <div class="form-group">
-            <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                <input type="checkbox" name="activo" {% if usuario.activo %}checked{% endif %}>
-                Usuario Activo
+            <label class="form-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" name="activo" id="activo" style="width: 18px; height: 18px; accent-color: var(--color-primary);" {% if usuario.activo %}checked{% endif %}>
+                <span>Cuenta de Usuario Activa</span>
             </label>
-            <div class="form-help">Los usuarios inactivos no pueden iniciar sesion</div>
+            <div class="form-help">Si desmarca esta opción, el usuario no podrá iniciar sesión en la plataforma</div>
         </div>
         {% endif %}
 
         <div class="form-actions mt-6">
             <a href="{% url 'gestion_usuarios' %}" class="btn btn-outline">
-                <i data-feather="arrow-left"></i>
+                <i data-feather="x"></i>
                 Cancelar
             </a>
             <button type="submit" class="btn btn-primary">

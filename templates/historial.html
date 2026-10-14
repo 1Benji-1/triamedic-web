@@ -1,28 +1,36 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Buscar Historias Clínicas</h1>
-    <p class="page-subtitle">Localización y consulta de historias clínicas por Cédula de Identidad, nombre, fecha o estado</p>
+<div class="page-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
+    <div>
+        <h1 class="page-title">Buscar Historias Clínicas</h1>
+        <p class="page-subtitle">Localización y consulta de historias clínicas por Cédula de Identidad, nombre, fecha o estado</p>
+    </div>
+    {% if user.rol == 'admin' or user.rol == 'triaje' or user.rol == 'estadistica' %}
+    <a href="{% url 'registrar_paciente' %}" class="btn btn-primary btn-sm">
+        <i data-feather="user-plus"></i>
+        Nuevo Paciente
+    </a>
+    {% endif %}
 </div>
 
-<!-- Search and Filters -->
+<!-- Search and Filters Card -->
 <div class="card mb-6">
     <form method="get" class="filter-bar">
         <div class="form-group search-group">
-            <label class="form-label">Buscar</label>
+            <label class="form-label">Buscar Paciente</label>
             <div style="position: relative;">
                 <i data-feather="search"
-                    style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--color-gray-400);"></i>
-                <input type="text" name="busqueda" class="form-input" style="padding-left: 40px;"
-                    placeholder="Buscar por nombre o CI..." value="{{ request.GET.busqueda|default:'' }}">
+                    style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: var(--color-gray-400);"></i>
+                <input type="text" name="busqueda" class="form-input" style="padding-left: 42px;"
+                    placeholder="Buscar por nombre, apellido o CI..." value="{{ request.GET.busqueda|default:'' }}">
             </div>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Estado</label>
+            <label class="form-label">Estado de Atención</label>
             <select name="estado" class="form-select">
-                <option value="">Todos</option>
+                <option value="">Todos los Estados</option>
                 <option value="atendido" {% if request.GET.estado == 'atendido' %}selected{% endif %}>Atendido</option>
                 <option value="en_atencion" {% if request.GET.estado == 'en_atencion' %}selected{% endif %}>En Atención</option>
                 <option value="en_espera" {% if request.GET.estado == 'en_espera' %}selected{% endif %}>En Espera</option>
@@ -30,12 +38,12 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Desde</label>
+            <label class="form-label">Fecha Desde</label>
             <input type="date" name="fecha_desde" class="form-input" value="{{ request.GET.fecha_desde|default:'' }}">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Hasta</label>
+            <label class="form-label">Fecha Hasta</label>
             <input type="date" name="fecha_hasta" class="form-input" value="{{ request.GET.fecha_hasta|default:'' }}">
         </div>
 
@@ -44,7 +52,7 @@
                 <i data-feather="filter"></i>
                 Filtrar
             </button>
-            <a href="{% url 'historial' %}" class="btn btn-outline">
+            <a href="{% url 'historial' %}" class="btn btn-outline" title="Limpiar filtros">
                 <i data-feather="x"></i>
                 Limpiar
             </a>
@@ -56,10 +64,10 @@
 <div class="queue-container">
     <div class="queue-header">
         <h2 class="queue-title">
-            <i data-feather="folder" style="display: inline; vertical-align: middle;"></i>
+            <i data-feather="folder"></i>
             Historias Clínicas Localizadas
         </h2>
-        <span class="queue-count">{{ page_obj.paginator.count }} registros</span>
+        <span class="queue-count">{{ page_obj.paginator.count }} registros encontrados</span>
     </div>
 
     {% if page_obj %}
@@ -79,18 +87,28 @@
                 {% for triaje in page_obj %}
                 <tr>
                     <td>
-                        <div class="patient-name">{{ triaje.paciente.nombre_completo }}</div>
-                        <div class="patient-ci">CI: {{ triaje.paciente.ci }}</div>
+                        <div class="flex items-center gap-3">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(79, 70, 229, 0.08); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; border: 1px solid rgba(79, 70, 229, 0.15); flex-shrink: 0;">
+                                {{ triaje.paciente.nombre_completo|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div class="patient-name">{{ triaje.paciente.nombre_completo }}</div>
+                                <div class="patient-ci">CI: {{ triaje.paciente.ci }}</div>
+                            </div>
+                        </div>
                     </td>
                     <td>
                         <div class="time-badge">
-                            <i data-feather="calendar" style="width: 14px; height: 14px;"></i>
+                            <i data-feather="calendar" style="width: 13px; height: 13px;"></i>
                             {{ triaje.fecha_hora_consulta|date:"d/m/Y H:i" }}
                         </div>
                     </td>
-                    <td>{{ triaje.get_especialidad_display }}</td>
+                    <td>
+                        <span style="font-weight: 500;">{{ triaje.get_especialidad_display }}</span>
+                    </td>
                     <td>
                         <span class="priority-badge {{ triaje.nivel_prioridad }}">
+                            <span class="priority-dot {{ triaje.nivel_prioridad }}"></span>
                             {{ triaje.get_nivel_prioridad_display }}
                         </span>
                     </td>
@@ -113,10 +131,10 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div style="display: flex; gap: 0.5rem;">
+                        <div class="flex gap-2 items-center">
                             <a href="{% url 'detalle_paciente' triaje.id %}" class="btn btn-outline btn-sm" title="Consultar Historia Clínica">
                                 <i data-feather="file-text"></i>
-                                Consultar Historia
+                                Ver Historia
                             </a>
                             {% if user.rol == 'admin' %}
                             <a href="{% url 'eliminar_paciente' triaje.id %}" class="btn btn-danger btn-sm" title="Eliminar registro">
@@ -135,12 +153,10 @@
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-        <a
-            href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
             &laquo; Primera
         </a>
-        <a
-            href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
             Anterior
         </a>
         {% endif %}
@@ -150,12 +166,10 @@
         </span>
 
         {% if page_obj.has_next %}
-        <a
-            href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
             Siguiente
         </a>
-        <a
-            href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
             Última &raquo;
         </a>
         {% endif %}
@@ -167,12 +181,14 @@
         <div class="queue-empty-icon">
             <i data-feather="inbox"></i>
         </div>
-        <h3>No se encontraron registros</h3>
+        <h3 style="font-weight: 700; color: var(--color-gray-800); margin-bottom: 6px;">No se encontraron registros</h3>
         <p class="text-muted">Intente con otros criterios de búsqueda o registre un nuevo paciente</p>
+        {% if user.rol == 'admin' or user.rol == 'triaje' or user.rol == 'estadistica' %}
         <a href="{% url 'registrar_paciente' %}" class="btn btn-primary mt-4">
             <i data-feather="user-plus"></i>
             Registrar Paciente
         </a>
+        {% endif %}
     </div>
     {% endif %}
 </div>

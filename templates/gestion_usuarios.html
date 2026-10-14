@@ -1,18 +1,26 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Gestión de Usuarios</h1>
-    <p class="page-subtitle">Administrar cuentas de personal de la clínica</p>
+<div class="page-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
+    <div>
+        <h1 class="page-title">Gestión de Usuarios y Roles</h1>
+        <p class="page-subtitle">Control de acceso y credenciales del personal de la clínica</p>
+    </div>
+    <a href="{% url 'crear_usuario' %}" class="btn btn-primary btn-sm">
+        <i data-feather="user-plus"></i>
+        Nuevo Usuario
+    </a>
 </div>
 
 <div class="card">
     <div class="card-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
-        <h2 class="card-title">Usuarios del Sistema</h2>
-        <a href="{% url 'crear_usuario' %}" class="btn btn-primary">
-            <i data-feather="user-plus"></i>
-            Nuevo Usuario
-        </a>
+        <h2 class="card-title">
+            <i data-feather="shield"></i>
+            Personal con Acceso al Sistema
+        </h2>
+        <span class="time-badge" style="font-weight: 600;">
+            {{ usuarios.count }} usuarios registrados
+        </span>
     </div>
 
     <div class="table-responsive">
@@ -21,8 +29,8 @@
                 <tr>
                     <th>Usuario</th>
                     <th>Nombre Completo</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
+                    <th>Rol Asignado</th>
+                    <th>Estado de Cuenta</th>
                     <th>Fecha Creación</th>
                     <th>Acciones</th>
                 </tr>
@@ -31,33 +39,49 @@
                 {% for usuario in usuarios %}
                 <tr>
                     <td>
-                        <div class="patient-name">{{ usuario.username }}</div>
+                        <div class="flex items-center gap-3">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--color-primary), #6366F1); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);">
+                                {{ usuario.username|slice:":2"|upper }}
+                            </div>
+                            <div class="patient-name">{{ usuario.username }}</div>
+                        </div>
                     </td>
-                    <td>{{ usuario.nombre_completo }}</td>
+                    <td style="font-weight: 500;">{{ usuario.nombre_completo }}</td>
                     <td>
-                        <span class="priority-badge {% if usuario.rol == 'admin' %}alta{% elif usuario.rol == 'doctor' or usuario.rol == 'clinico' %}info{% elif usuario.rol == 'triaje' %}media{% else %}purple{% endif %}">
+                        <span class="priority-badge {% if usuario.rol == 'admin' %}purple{% elif usuario.rol == 'doctor' or usuario.rol == 'clinico' %}info{% elif usuario.rol == 'triaje' %}alta{% else %}media{% endif %}">
                             {{ usuario.get_rol_display }}
                         </span>
                     </td>
                     <td>
                         {% if usuario.activo %}
-                        <span class="priority-badge baja">Activo</span>
+                        <span class="priority-badge baja">
+                            <span class="priority-dot baja"></span>
+                            Activo
+                        </span>
                         {% else %}
-                        <span class="priority-badge alta">Inactivo</span>
+                        <span class="priority-badge alta">
+                            <span class="priority-dot alta"></span>
+                            Inactivo
+                        </span>
                         {% endif %}
                     </td>
-                    <td>{{ usuario.fecha_creacion|date:"d/m/Y" }}</td>
                     <td>
-                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-outline btn-sm">
-                            <i data-feather="edit"></i>
+                        <div class="time-badge">
+                            <i data-feather="calendar" style="width: 13px; height: 13px;"></i>
+                            {{ usuario.fecha_creacion|date:"d/m/Y" }}
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{% url 'editar_usuario' usuario.id %}" class="btn btn-outline btn-sm" title="Editar credenciales o rol">
+                            <i data-feather="edit-2"></i>
                             Editar
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center text-muted" style="padding: 2rem;">
-                        No hay usuarios registrados
+                    <td colspan="6" class="text-center text-muted" style="padding: 2.5rem;">
+                        No hay usuarios adicionales registrados en el sistema
                     </td>
                 </tr>
                 {% endfor %}

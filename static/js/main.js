@@ -26,9 +26,31 @@ function initializeApp() {
     // Initialize auto-hide messages
     initMessageAutoHide();
     
+    // Initialize password toggle
+    initPasswordToggle();
+
     // Initialize real-time updates if on dashboard
     if (document.getElementById('queue-body')) {
         initQueueUpdates();
+    }
+}
+
+/**
+ * Password visibility toggle
+ */
+function initPasswordToggle() {
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const passInput = document.getElementById('id_password');
+    if (toggleBtn && passInput) {
+        toggleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            toggleBtn.innerHTML = isPass ? '<i data-feather="eye-off"></i>' : '<i data-feather="eye"></i>';
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
     }
 }
 

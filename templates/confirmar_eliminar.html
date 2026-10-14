@@ -1,26 +1,33 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Confirmar Eliminación</h1>
-    <p class="page-subtitle">Esta acción no se puede deshacer</p>
+<div class="page-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
+    <div>
+        <h1 class="page-title">Confirmar Eliminación de Registro</h1>
+        <p class="page-subtitle">Acción administrativa de depuración · Clínica Cristiana "El Buen Samaritano"</p>
+    </div>
+    <a href="{% url 'historial' %}" class="btn btn-outline btn-sm">
+        <i data-feather="arrow-left"></i>
+        Volver al Historial
+    </a>
 </div>
 
-<div class="card" style="max-width: 500px;">
+<div class="card" style="max-width: 520px; margin: 0 auto; border-top: 4px solid var(--color-error);">
     <div class="text-center mb-6">
-        <div style="font-size: 48px; color: var(--color-error); margin-bottom: 1rem;">
-            <i data-feather="alert-triangle"></i>
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: var(--color-error); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+            <i data-feather="alert-triangle" style="width: 32px; height: 32px;"></i>
         </div>
-        <h3>¿Está seguro de eliminar este registro?</h3>
+        <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--color-gray-900);">¿Está seguro de eliminar este registro?</h2>
+        <p class="text-muted mt-2" style="font-size: 0.875rem;">Esta acción eliminará el registro de atención seleccionado y no se podrá recuperar.</p>
     </div>
 
-    <div class="info-grid mb-6">
+    <div class="info-grid mb-6" style="grid-template-columns: 1fr 1fr;">
         <div class="info-item">
             <div class="info-label">Paciente</div>
             <div class="info-value">{{ paciente.nombre_completo }}</div>
         </div>
         <div class="info-item">
-            <div class="info-label">CI</div>
+            <div class="info-label">Cédula (CI)</div>
             <div class="info-value">{{ paciente.ci }}</div>
         </div>
         <div class="info-item">
@@ -33,20 +40,21 @@
         </div>
     </div>
 
-    <div class="text-muted text-center mb-6" style="font-size: 14px;">
-        <strong>Nota:</strong> Si este es el único triaje del paciente, también se eliminará el registro del paciente.
+    <div class="time-badge text-center w-full mb-6" style="background: rgba(239, 68, 68, 0.08); color: var(--color-error); padding: 10px; border-radius: 10px; font-size: 0.8rem; justify-content: center;">
+        <i data-feather="info" style="width: 14px; height: 14px;"></i>
+        <span>Nota: Si este es el único registro del paciente, también se removerá la ficha base.</span>
     </div>
 
     <form method="post">
         {% csrf_token %}
         <div class="form-actions">
             <a href="{% url 'historial' %}" class="btn btn-outline">
-                <i data-feather="arrow-left"></i>
+                <i data-feather="x"></i>
                 Cancelar
             </a>
             <button type="submit" class="btn btn-danger">
                 <i data-feather="trash-2"></i>
-                Eliminar Registro
+                Confirmar Eliminación
             </button>
         </div>
     </form>

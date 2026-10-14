@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="page-header">
-    <h1 class="page-title">Reportes y Estadísticas</h1>
-    <p class="page-subtitle">Generación de reportes y análisis métrico · Consulta Externa - Clínica El Buen Samaritano</p>
+<div class="page-header flex justify-between items-center" style="flex-wrap: wrap; gap: var(--spacing-3);">
+    <div>
+        <h1 class="page-title">Reportes y Estadísticas Clínicas</h1>
+        <p class="page-subtitle">Métricas de triaje, tiempos de atención y distribución de pacientes · Consulta Externa</p>
+    </div>
+    <div class="time-badge" style="background: rgba(79, 70, 229, 0.08); color: var(--color-primary); font-weight: 600; border: 1px solid rgba(79, 70, 229, 0.2);">
+        <i data-feather="bar-chart-2" style="width: 14px; height: 14px;"></i>
+        Métricas en Tiempo Real
+    </div>
 </div>
 
-<!-- Date Filter -->
+<!-- Date Filter Card -->
 <div class="card mb-6">
     <form method="get" class="filter-bar">
         <div class="form-group">
@@ -21,9 +27,13 @@
 
         <div class="filter-actions">
             <button type="submit" class="btn btn-primary">
-                <i data-feather="bar-chart-2"></i>
-                Generar Reporte
+                <i data-feather="filter"></i>
+                Actualizar Reporte
             </button>
+            <a href="{% url 'reportes' %}" class="btn btn-outline" title="Restablecer">
+                <i data-feather="rotate-ccw"></i>
+                Restablecer
+            </a>
         </div>
     </form>
 </div>
@@ -46,7 +56,7 @@
         </div>
         <div class="stat-content">
             <div class="stat-value">{{ stats.total_registrados }}</div>
-            <div class="stat-label">Total Registrados</div>
+            <div class="stat-label">Total Pacientes Registrados</div>
         </div>
     </div>
 </div>
@@ -56,8 +66,8 @@
     <!-- Priority Distribution Chart -->
     <div class="chart-container">
         <h3 class="chart-title">
-            <i data-feather="pie-chart" style="display: inline; vertical-align: middle;"></i>
-            Distribución por Prioridad
+            <i data-feather="pie-chart"></i>
+            Distribución por Nivel de Prioridad
         </h3>
         <canvas id="prioridadChart"></canvas>
     </div>
@@ -65,8 +75,8 @@
     <!-- Daily Trend Chart -->
     <div class="chart-container">
         <h3 class="chart-title">
-            <i data-feather="trending-up" style="display: inline; vertical-align: middle;"></i>
-            Tendencia Diaria
+            <i data-feather="trending-up"></i>
+            Tendencia de Atenciones por Día
         </h3>
         <canvas id="tendenciaChart"></canvas>
     </div>
@@ -75,33 +85,37 @@
 <!-- Specialty Distribution -->
 {% if especialidad_stats %}
 <div class="card mb-6">
-    <h3 class="card-title mb-4">
-        <i data-feather="grid" style="display: inline; vertical-align: middle;"></i>
-        Pacientes por Especialidad
-    </h3>
+    <div class="card-header">
+        <h3 class="card-title">
+            <i data-feather="grid"></i>
+            Atenciones por Especialidad Médica
+        </h3>
+    </div>
 
     <div class="table-responsive">
         <table class="queue-table">
             <thead>
                 <tr>
                     <th>Especialidad</th>
-                    <th>Total Pacientes</th>
-                    <th>Porcentaje</th>
+                    <th>Total Atenciones</th>
+                    <th>Proporción Visual</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in especialidad_stats %}
                 <tr>
-                    <td>{{ item.especialidad|title }}</td>
-                    <td>{{ item.total }}</td>
+                    <td style="font-weight: 600; color: var(--color-gray-900);">{{ item.especialidad|title }}</td>
                     <td>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="flex: 1; background: var(--color-gray-200); border-radius: 4px; height: 8px;">
-                                <div
-                                    style="width: 33%; background: var(--color-primary); height: 100%; border-radius: 4px;">
+                        <span class="time-badge" style="font-weight: 700; color: var(--color-primary); background: rgba(79, 70, 229, 0.08);">
+                            {{ item.total }} pacientes
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px; max-width: 300px;">
+                            <div style="flex: 1; background: var(--color-gray-200); border-radius: 9999px; height: 8px; overflow: hidden;">
+                                <div style="width: 50%; background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light)); height: 100%; border-radius: 9999px;">
                                 </div>
                             </div>
-                            <span class="text-muted" style="font-size: 12px;">{{ item.total }}</span>
                         </div>
                     </td>
                 </tr>
@@ -115,40 +129,45 @@
 <!-- User Performance Stats -->
 {% if usuarios_stats %}
 <div class="card mb-6">
-    <h3 class="card-title mb-4">
-        <i data-feather="users" style="display: inline; vertical-align: middle;"></i>
-        Rendimiento por Usuario
-    </h3>
+    <div class="card-header">
+        <h3 class="card-title">
+            <i data-feather="users"></i>
+            Rendimiento del Personal y Tiempos de Atención
+        </h3>
+    </div>
 
     <div class="table-responsive">
         <table class="queue-table">
             <thead>
                 <tr>
-                    <th>Usuario</th>
+                    <th>Usuario Responsable</th>
                     <th>Pacientes Atendidos</th>
-                    <th>Tiempo Promedio</th>
+                    <th>Tiempo Promedio de Consulta</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in usuarios_stats %}
                 <tr>
                     <td>
-                        <div class="patient-name">{{ item.usuario__nombre_completo|default:"Usuario Eliminado" }}</div>
+                        <div class="patient-name">{{ item.usuario__nombre_completo|default:"Personal Médico" }}</div>
                     </td>
                     <td>
-                        <span class="priority-badge baja">{{ item.total_atendidos }}</span>
-                    </td>
-                    <td>
-                        <span class="time-badge">
-                            <i data-feather="clock" style="width: 14px; height: 14px;"></i>
-                            {{ item.promedio_minutos }} min
+                        <span class="priority-badge baja">
+                            <i data-feather="check" style="width: 12px; height: 12px;"></i>
+                            {{ item.total_atendidos }} atendidos
                         </span>
+                    </td>
+                    <td>
+                        <div class="time-badge">
+                            <i data-feather="clock" style="width: 13px; height: 13px;"></i>
+                            {{ item.promedio_minutos }} min
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="3" class="text-center text-muted" style="padding: 2rem;">
-                        No hay datos de atención en este período
+                    <td colspan="3" class="text-center text-muted" style="padding: 2.5rem;">
+                        No hay atenciones registradas en el período seleccionado
                     </td>
                 </tr>
                 {% endfor %}
@@ -161,17 +180,19 @@
 <!-- Priority Distribution Table -->
 {% if prioridad_stats %}
 <div class="card">
-    <h3 class="card-title mb-4">
-        <i data-feather="alert-circle" style="display: inline; vertical-align: middle;"></i>
-        Detalle por Prioridad
-    </h3>
+    <div class="card-header">
+        <h3 class="card-title">
+            <i data-feather="alert-circle"></i>
+            Resumen Detallado por Prioridad de Triaje
+        </h3>
+    </div>
 
     <div class="info-grid">
         {% for item in prioridad_stats %}
         <div class="info-item"
-            style="border-left: 4px solid {% if item.nivel_prioridad == 'alta' %}var(--color-priority-alta){% elif item.nivel_prioridad == 'media' %}var(--color-priority-media){% else %}var(--color-priority-baja){% endif %};">
+            style="border-left: 4px solid {% if item.nivel_prioridad == 'alta' %}var(--color-priority-alta){% elif item.nivel_prioridad == 'media' %}#D97706{% else %}var(--color-priority-baja){% endif %};">
             <div class="info-label">Prioridad {{ item.nivel_prioridad|title }}</div>
-            <div class="info-value">{{ item.total }} pacientes</div>
+            <div class="info-value" style="font-size: 1.25rem;">{{ item.total }} pacientes</div>
         </div>
         {% endfor %}
     </div>
@@ -181,11 +202,9 @@
 
 {% block extra_scripts %}
 <script>
-    // Fetch chart data from API
     fetch('{% url "api_reportes" %}?fecha_desde={{ fecha_desde|date:"Y-m-d" }}&fecha_hasta={{ fecha_hasta|date:"Y-m-d" }}')
         .then(response => response.json())
         .then(data => {
-            // Priority Pie Chart
             const prioridadCtx = document.getElementById('prioridadChart').getContext('2d');
             new Chart(prioridadCtx, {
                 type: 'doughnut',
@@ -193,43 +212,54 @@
                     labels: data.prioridad.labels,
                     datasets: [{
                         data: data.prioridad.data,
-                        backgroundColor: data.prioridad.colors,
-                        borderWidth: 0,
-                        hoverOffset: 4
+                        backgroundColor: ['#DC3545', '#FFC107', '#28A745'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
                             position: 'bottom',
+                            labels: {
+                                padding: 16,
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    weight: 600,
+                                    size: 12
+                                }
+                            }
                         }
                     },
-                    cutout: '60%'
+                    cutout: '68%'
                 }
             });
 
-            // Trend Line Chart
             const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
             new Chart(tendenciaCtx, {
                 type: 'line',
                 data: {
                     labels: data.tendencia.labels,
                     datasets: [{
-                        label: 'Pacientes',
+                        label: 'Pacientes Atendidos',
                         data: data.tendencia.data,
                         borderColor: '#4F46E5',
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.08)',
                         fill: true,
-                        tension: 0.4,
+                        tension: 0.35,
                         pointBackgroundColor: '#4F46E5',
-                        pointBorderColor: '#fff',
+                        pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
-                        pointRadius: 4
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
                         legend: {
                             display: false
@@ -238,8 +268,24 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.6)'
+                            },
                             ticks: {
-                                stepSize: 1
+                                stepSize: 1,
+                                font: {
+                                    family: "'Inter', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: "'Inter', sans-serif"
+                                }
                             }
                         }
                     }
